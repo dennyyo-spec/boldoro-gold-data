@@ -13,7 +13,10 @@ jobs:
   update:
     runs-on: ubuntu-latest
 
+    timeout-minutes: 10
+
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -29,9 +32,19 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Collect live price
-        run: npm run collect
+        timeout-minutes: 5
+        run: xvfb-run -a npm run collect
+
+      - name: Upload error screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gold-error-screen
+          path: gold-error.png
+          if-no-files-found: ignore
 
       - name: Commit updated JSON
+        if: success()
         run: |
           git config user.name "boldoro-price-bot"
           git config user.email "actions@users.noreply.github.com"
